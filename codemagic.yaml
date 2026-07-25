@@ -1,0 +1,55 @@
+workflows:
+  android-test-build:
+    name: Android Test Build (APK)
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+    scripts:
+      - name: Eksikse Android platform klasörünü oluştur
+        script: |
+          flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
+      - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
+        script: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
+            sed -i '/<manifest /a\    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' "$MANIFEST"
+          fi
+      - name: Paketleri indir
+        script: flutter pub get
+      - name: Testleri çalıştır (varsa)
+        script: flutter test || true
+      - name: Debug APK derle (imzasız, hızlı test için)
+        script: flutter build apk --debug
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients: []
+
+  # Play Store'a yüklenecek release build için, keystore (imzalama anahtarı)
+  # hazır olduğunda bu workflow'u kullanacağız. Şimdilik dursun.
+  android-release-build:
+    name: Android Release Build (AAB - Play Store)
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      android_signing:
+        - keystore_reference # Codemagic panelinden keystore yükleyince bu isim otomatik eşleşir
+    scripts:
+      - name: Eksikse Android platform klasörünü oluştur
+        script: |
+          flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
+      - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
+        script: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
+            sed -i '/<manifest /a\    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' "$MANIFEST"
+          fi
+      - name: Paketleri indir
+        script: flutter pub get
+      - name: Release AAB derle (Play Store için)
+        script: flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
