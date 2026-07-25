@@ -23,9 +23,7 @@ workflows:
         script: flutter build apk --debug
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
-    publishing:
-      email:
-        recipients: []
+
 
   # Play Store'a yüklenecek release build için, keystore (imzalama anahtarı)
   # hazır olduğunda bu workflow'u kullanacağız. Şimdilik dursun.
