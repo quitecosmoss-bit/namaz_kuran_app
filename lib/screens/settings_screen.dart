@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../localization/app_strings.dart';
 import '../providers/app_settings.dart';
 import '../services/quran_service.dart';
 
@@ -9,24 +10,24 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appSettings = context.watch<AppSettings>();
+    final lang = appSettings.language;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ayarlar')),
+      appBar: AppBar(title: Text(AppStrings.get('settingsTitle', lang))),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             child: Text(
-              'Kuran meal dili',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              AppStrings.get('settingsSectionTitle', lang),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Text(
-              'Sure okurken Arapça orijinal metnin yanında hangi dildeki '
-              'meali görmek istersin?',
-              style: TextStyle(color: Colors.grey),
+              AppStrings.get('settingsSectionDesc', lang),
+              style: const TextStyle(color: Colors.grey),
             ),
           ),
           ...QuranService.languageLabels.entries.map((entry) {
@@ -34,11 +35,11 @@ class SettingsScreen extends StatelessWidget {
             final label = entry.value;
             return RadioListTile<String>(
               value: code,
-              groupValue: appSettings.mealLanguage,
+              groupValue: appSettings.language,
               title: Text(label),
               onChanged: (value) {
                 if (value != null) {
-                  appSettings.setMealLanguage(value);
+                  appSettings.setLanguage(value);
                 }
               },
             );

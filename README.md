@@ -12,6 +12,70 @@ okumaya izin veren bir Flutter uygulaması.
 
 ---
 
+## YÖNTEM A: Hiçbir Şey Kurmadan (GitHub + Codemagic) — ÖNERİLEN
+
+Bilgisayarına Flutter, Android Studio falan kurmana gerek yok. Kod bulutta
+(Codemagic'in sunucularında) derlenecek.
+
+### Adım 1 — GitHub'a hesap aç ve repo oluştur
+1. https://github.com adresinden ücretsiz hesap aç (yoksa).
+2. Sağ üstteki **+** işaretine tıkla → **New repository**.
+3. İsim ver (örn. `namaz-kuran-app`), **Public** veya **Private** seç
+   (ikisi de olur), **Create repository** butonuna bas.
+
+### Adım 2 — Proje dosyalarını yükle
+1. Bu paylaşımdaki zip dosyasını bilgisayarında bir klasöre çıkart (unzip).
+2. GitHub'da yeni açtığın repo sayfasında **"uploading an existing file"**
+   linkine tıkla (veya **Add file > Upload files**).
+3. Çıkarttığın `namaz_kuran_app` klasörünün **içindeki** tüm dosya ve
+   klasörleri (lib/, pubspec.yaml, codemagic.yaml, README.md) seçip
+   tarayıcıya sürükle-bırak yap. (Chrome/Firefox klasör yapısını koruyarak
+   yükler.)
+4. Altta **Commit changes** butonuna bas.
+
+### Adım 3 — Codemagic'e bağlan
+1. https://codemagic.io adresine git, **"Sign up"** ile GitHub hesabınla
+   giriş yap (ayrı şifre oluşturmana gerek yok).
+2. İlk girişte GitHub reponu Codemagic'e bağlamanı isteyecek — az önce
+   oluşturduğun `namaz-kuran-app` reposunu seç.
+3. Codemagic, repo içindeki `codemagic.yaml` dosyasını otomatik algılayacak
+   ve **"Android Test Build (APK)"** adında bir iş akışı (workflow)
+   göreceksin.
+4. O workflow'un yanındaki **Start new build** butonuna bas.
+5. Derleme başlar (birkaç dakika sürer), bittiğinde **Artifacts** kısmında
+   bir `.apk` dosyası göreceksin — indirebilirsin.
+
+### Adım 4 — Telefonunda test et
+1. İndirdiğin `.apk` dosyasını telefonuna aktar (Google Drive/WhatsApp'a
+   kendine gönderme gibi basit bir yöntemle).
+2. Telefonda dosyaya dokunup kur. Android "bilinmeyen kaynaklardan yükleme"
+   izni isteyebilir, açman gerekir (sadece test amaçlı, güvenlidir çünkü
+   kendi derlediğin dosya).
+3. Uygulama açılınca konum izni isteyecek, izin ver — namaz vakitleri
+   gelecek.
+
+Kod üzerinde değişiklik yapmak istediğinde (örn. bir ekranın rengini
+değiştirmek), bana söylersin, ben dosyayı güncellerim, sen güncellenen
+dosyayı GitHub'a tekrar yüklersin (üzerine yazarak), Codemagic'te tekrar
+**Start new build** dersin. Her build ücretsiz 500 dakikalık kotandan
+düşer (bu boyuttaki bir uygulama için bir build ~3-5 dakika sürer, yani
+ayda 100'den fazla build hakkın olur).
+
+### Play Store'a yayınlarken (ileride)
+`codemagic.yaml` içinde hazır bir **android-release-build** iş akışı da
+var; imzalama anahtarı (keystore) oluşturup Codemagic paneline
+yüklediğimizde bu workflow ile doğrudan Play Store'a yüklenebilir `.aab`
+dosyası üretebileceğiz. Bu adımı, uygulama işlevsel olarak tamamlandığında
+birlikte yapalım.
+
+---
+
+## YÖNTEM B: Bilgisayarına Kurarak (Flutter + Android Studio)
+
+Bunu istersen, örneğin geliştirmeyi hızlandırmak için ileride tercih
+edebilirsin (her değişiklikte anında telefonda görürsün, bulut derlemesi
+beklemezsin). Şimdilik atlayabilirsin.
+
 ## 1. Ön Gereksinimler (bilgisayarına kur)
 
 1. **Flutter SDK** kur: https://docs.flutter.dev/get-started/install

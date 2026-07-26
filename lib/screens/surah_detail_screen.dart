@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../localization/app_strings.dart';
 import '../models/ayah.dart';
 import '../models/surah.dart';
 import '../providers/app_settings.dart';
 import '../services/quran_service.dart';
 import '../theme/app_theme.dart';
+import 'quran_list_screen.dart';
 
 class SurahDetailScreen extends StatefulWidget {
   final Surah surah;
@@ -30,16 +32,15 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appSettings = context.watch<AppSettings>();
+    final lang = context.watch<AppSettings>().language;
 
-    // Dil değiştiyse yeniden yükle
-    if (_loadedForLanguage != appSettings.mealLanguage) {
-      _load(appSettings.mealLanguage);
+    if (_loadedForLanguage != lang) {
+      _load(lang);
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.surah.englishNameTranslation),
+        title: Text(surahDisplayName(widget.surah, lang)),
       ),
       body: FutureBuilder<List<AyahPair>>(
         future: _future,
@@ -53,7 +54,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  '${snapshot.error}'.replaceFirst('Exception: ', ''),
+                  AppStrings.get('errorNetwork', lang),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -93,10 +94,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         ayah.arabicText,
                         textAlign: TextAlign.right,
                         textDirection: TextDirection.rtl,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          height: 1.8,
-                        ),
+                        style: const TextStyle(fontSize: 22, height: 1.8),
                       ),
                       const Divider(height: 24),
                       Text(

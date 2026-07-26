@@ -19,8 +19,6 @@ class PrayerTimes {
     required this.isha,
   });
 
-  /// Aladhan API "05:12 (+03)" gibi değerler dönebiliyor,
-  /// sadece saat kısmını alıyoruz.
   static String _clean(String value) => value.split(' ').first;
 
   factory PrayerTimes.fromJson(Map<String, dynamic> json) {
@@ -31,8 +29,7 @@ class PrayerTimes {
 
     return PrayerTimes(
       readableDate: date['readable'] ?? '',
-      hijriDate:
-          '${hijri['day']} ${hijri['month']['en']} ${hijri['year']}',
+      hijriDate: '${hijri['day']} ${hijri['month']['en']} ${hijri['year']}',
       fajr: _clean(timings['Fajr'] ?? ''),
       sunrise: _clean(timings['Sunrise'] ?? ''),
       dhuhr: _clean(timings['Dhuhr'] ?? ''),
@@ -40,17 +37,5 @@ class PrayerTimes {
       maghrib: _clean(timings['Maghrib'] ?? ''),
       isha: _clean(timings['Isha'] ?? ''),
     );
-  }
-
-  /// Ekranda liste halinde göstermek için kolay bir yapı
-  List<MapEntry<String, String>> toDisplayList() {
-    return [
-      MapEntry('İmsak (Fajr)', fajr),
-      MapEntry('Güneş', sunrise),
-      MapEntry('Öğle', dhuhr),
-      MapEntry('İkindi', asr),
-      MapEntry('Akşam', maghrib),
-      MapEntry('Yatsı', isha),
-    ];
   }
 }

@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../localization/app_strings.dart';
+import '../models/app_exception.dart';
 import '../models/prayer_times.dart';
+import '../providers/app_settings.dart';
 import '../services/location_service.dart';
 import '../services/prayer_service.dart';
 import '../theme/app_theme.dart';
+import 'prayer_guide_list_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -13,13 +18,13 @@ class PrayerTimesScreen extends StatefulWidget {
 }
 
 class _PrayerStatus {
-  final String currentLabel;
-  final String nextLabel;
+  final String currentKey;
+  final String nextKey;
   final Duration remaining;
 
   _PrayerStatus({
-    required this.currentLabel,
-    required this.nextLabel,
+    required this.currentKey,
+    required this.nextKey,
     required this.remaining,
   });
 }
@@ -29,7 +34,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   final PrayerService _prayerService = PrayerService();
 
   bool _loading = true;
-  String? _error;
+  AppErrorCode? _errorCode;
   PrayerTimes? _times;
   String? _cityInfo;
   Timer? _ticker;
@@ -49,7 +54,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Future<void> _fetchTimes() async {
     setState(() {
       _loading = true;
-      _error = null;
+      _errorCode = null;
     });
 
     try {
@@ -66,20 +71,18 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         _loading = false;
       });
 
-      // Vakit sayacını her saniye güncellemek için bir zamanlayıcı başlat
       _ticker?.cancel();
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() {});
       });
     } catch (e) {
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _errorCode = e is AppException ? e.code : AppErrorCode.unknown;
         _loading = false;
       });
     }
   }
 
-  /// Verilen "HH:mm" metnini bugünün tarihiyle birleştirip DateTime'a çevirir.
   DateTime _parseTimeToday(String hm) {
     final now = DateTime.now();
     final parts = hm.split(':');
@@ -92,36 +95,33 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     );
   }
 
-  /// Şu an hangi vakitte olduğumuzu ve bir sonraki vakte kalan süreyi hesaplar.
   _PrayerStatus _computeStatus(PrayerTimes times) {
     final now = DateTime.now();
 
     final points = <MapEntry<String, DateTime>>[
-      MapEntry('İmsak', _parseTimeToday(times.fajr)),
-      MapEntry('Güneş', _parseTimeToday(times.sunrise)),
-      MapEntry('Öğle', _parseTimeToday(times.dhuhr)),
-      MapEntry('İkindi', _parseTimeToday(times.asr)),
-      MapEntry('Akşam', _parseTimeToday(times.maghrib)),
-      MapEntry('Yatsı', _parseTimeToday(times.isha)),
+      MapEntry('vaktFajr', _parseTimeToday(times.fajr)),
+      MapEntry('vaktSunrise', _parseTimeToday(times.sunrise)),
+      MapEntry('vaktDhuhr', _parseTimeToday(times.dhuhr)),
+      MapEntry('vaktAsr', _parseTimeToday(times.asr)),
+      MapEntry('vaktMaghrib', _parseTimeToday(times.maghrib)),
+      MapEntry('vaktIsha', _parseTimeToday(times.isha)),
     ];
 
     for (int i = 0; i < points.length; i++) {
       if (now.isBefore(points[i].value)) {
-        final currentLabel = i == 0 ? 'Yatsı' : points[i - 1].key;
+        final currentKey = i == 0 ? 'vaktIsha' : points[i - 1].key;
         return _PrayerStatus(
-          currentLabel: currentLabel,
-          nextLabel: points[i].key,
+          currentKey: currentKey,
+          nextKey: points[i].key,
           remaining: points[i].value.difference(now),
         );
       }
     }
 
-    // Yatsı vaktini geçtiysek: şu an Yatsı vaktindeyiz,
-    // bir sonraki vakit yarınki İmsak (yaklaşık olarak bugünün saatiyle).
     final tomorrowFajr = points.first.value.add(const Duration(days: 1));
     return _PrayerStatus(
-      currentLabel: 'Yatsı',
-      nextLabel: 'İmsak',
+      currentKey: 'vaktIsha',
+      nextKey: 'vaktFajr',
       remaining: tomorrowFajr.difference(now),
     );
   }
@@ -134,23 +134,38 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     return '$h:$m:$s';
   }
 
+  String _errorKey(AppErrorCode code) {
+    switch (code) {
+      case AppErrorCode.locationServiceDisabled:
+        return 'errorLocationServiceDisabled';
+      case AppErrorCode.locationPermissionDenied:
+        return 'errorLocationPermissionDenied';
+      case AppErrorCode.locationPermissionDeniedForever:
+        return 'errorLocationPermissionDeniedForever';
+      default:
+        return 'errorNetwork';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<AppSettings>().language;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Namaz Vakitleri')),
+      appBar: AppBar(title: Text(AppStrings.get('prayerTimesTitle', lang))),
       body: RefreshIndicator(
         onRefresh: _fetchTimes,
-        child: _buildBody(),
+        child: _buildBody(lang),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(String lang) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_error != null) {
+    if (_errorCode != null) {
       return ListView(
         children: [
           const SizedBox(height: 80),
@@ -159,7 +174,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
-              _error!,
+              AppStrings.get(_errorKey(_errorCode!), lang),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 15),
             ),
@@ -168,7 +183,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Center(
             child: ElevatedButton(
               onPressed: _fetchTimes,
-              child: const Text('Tekrar Dene'),
+              child: Text(AppStrings.get('retry', lang)),
             ),
           ),
         ],
@@ -178,9 +193,65 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final times = _times!;
     final status = _computeStatus(times);
 
+    final vaktList = <MapEntry<String, String>>[
+      MapEntry('vaktFajr', times.fajr),
+      MapEntry('vaktSunrise', times.sunrise),
+      MapEntry('vaktDhuhr', times.dhuhr),
+      MapEntry('vaktAsr', times.asr),
+      MapEntry('vaktMaghrib', times.maghrib),
+      MapEntry('vaktIsha', times.isha),
+    ];
+
+    final currentLabel = AppStrings.get(status.currentKey, lang);
+    final nextLabel = AppStrings.get(status.nextKey, lang);
+    final vaktiSuffix = AppStrings.get('vaktiSuffix', lang);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            width: 190,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGold,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PrayerGuideListScreen(),
+                  ),
+                );
+              },
+              child: const Column(
+                children: [
+                  Icon(Icons.self_improvement, size: 22),
+                  SizedBox(height: 6),
+                  Text(
+                    'HADİ NAMAZ KILMAYI\nBERABER ÖĞRENELİM',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Card(
           color: AppTheme.primaryGreen,
           child: Padding(
@@ -198,7 +269,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 ),
                 const SizedBox(height: 18),
                 Text(
-                  'Şu an: ${status.currentLabel} vakti',
+                  '${AppStrings.get('currentlyPrefix', lang)}: $currentLabel${vaktiSuffix.isNotEmpty ? ' $vaktiSuffix' : ''}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -217,7 +288,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${status.nextLabel} vaktine kalan süre',
+                  '$nextLabel ${AppStrings.get('remainingUntilSuffix', lang)}',
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
@@ -225,28 +296,30 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ...times.toDisplayList().map(
-              (entry) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.access_time,
-                      color: AppTheme.primaryGreen),
-                  title: Text(entry.key,
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
-                  trailing: Text(
-                    entry.value,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryGreen,
-                    ),
-                  ),
+        ...vaktList.map(
+          (entry) => Card(
+            child: ListTile(
+              leading:
+                  const Icon(Icons.access_time, color: AppTheme.primaryGreen),
+              title: Text(
+                AppStrings.get(entry.key, lang),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              trailing: Text(
+                entry.value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ),
+          ),
+        ),
         const SizedBox(height: 12),
         Center(
           child: Text(
-            'Konum: $_cityInfo\nHesaplama: Diyanet İşleri Başkanlığı yöntemi',
+            '${AppStrings.get('location', lang)}: $_cityInfo\n${AppStrings.get('calculationMethod', lang)}',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
           ),
