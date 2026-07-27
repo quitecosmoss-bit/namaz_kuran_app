@@ -34,13 +34,11 @@ class LocationService {
   Future<String?> getPlaceLabel({
     required double latitude,
     required double longitude,
-    required String localeIdentifier,
   }) async {
     try {
       final placemarks = await placemarkFromCoordinates(
         latitude,
         longitude,
-        localeIdentifier: localeIdentifier,
       );
 
       if (placemarks.isEmpty) return null;

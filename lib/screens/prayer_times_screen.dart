@@ -81,18 +81,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
       // İlçe/İl adını arka planda getir; başarısız olursa sessizce yok say,
       // ana ekranı (namaz vakitlerini) etkilemesin.
-      final lang = mounted ? context.read<AppSettings>().language : 'tr';
-      const localeMap = {
-        'tr': 'tr_TR',
-        'en': 'en_US',
-        'de': 'de_DE',
-        'ru': 'ru_RU',
-      };
       _locationService
           .getPlaceLabel(
         latitude: position.latitude,
         longitude: position.longitude,
-        localeIdentifier: localeMap[lang] ?? 'tr_TR',
       )
           .then((label) {
         if (mounted) setState(() => _placeLabel = label);
