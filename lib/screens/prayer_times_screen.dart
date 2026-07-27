@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../localization/app_strings.dart';
+import '../localization/date_translations.dart';
 import '../models/app_exception.dart';
 import '../models/prayer_times.dart';
 import '../providers/app_settings.dart';
@@ -37,6 +38,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   AppErrorCode? _errorCode;
   PrayerTimes? _times;
   String? _cityInfo;
+  String? _placeLabel;
   Timer? _ticker;
 
   @override
@@ -55,6 +57,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     setState(() {
       _loading = true;
       _errorCode = null;
+      _placeLabel = null;
     });
 
     try {
@@ -74,6 +77,25 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _ticker?.cancel();
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() {});
+      });
+
+      // İlçe/İl adını arka planda getir; başarısız olursa sessizce yok say,
+      // ana ekranı (namaz vakitlerini) etkilemesin.
+      final lang = mounted ? context.read<AppSettings>().language : 'tr';
+      const localeMap = {
+        'tr': 'tr_TR',
+        'en': 'en_US',
+        'de': 'de_DE',
+        'ru': 'ru_RU',
+      };
+      _locationService
+          .getPlaceLabel(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        localeIdentifier: localeMap[lang] ?? 'tr_TR',
+      )
+          .then((label) {
+        if (mounted) setState(() => _placeLabel = label);
       });
     } catch (e) {
       setState(() {
@@ -209,73 +231,36 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: 190,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentGold,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 10,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PrayerGuideListScreen(),
-                  ),
-                );
-              },
-              child: const Column(
-                children: [
-                  Icon(Icons.self_improvement, size: 22),
-                  SizedBox(height: 6),
-                  Text(
-                    'HADİ NAMAZ KILMAYI\nBERABER ÖĞRENELİM',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
         Card(
           color: AppTheme.primaryGreen,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Text(
-                  times.readableDate,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  times.hijriDate,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  '${AppStrings.get('currentlyPrefix', lang)}: $currentLabel${vaktiSuffix.isNotEmpty ? ' $vaktiSuffix' : ''}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      formatGregorianDate(times, lang),
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      times.hijriDate,
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 13),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      '${AppStrings.get('currentlyPrefix', lang)}: $currentLabel${vaktiSuffix.isNotEmpty ? ' $vaktiSuffix' : ''}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                 const SizedBox(height: 6),
                 Text(
                   _formatDuration(status.remaining),
@@ -292,10 +277,77 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
+                ),
+              ),
+              if (_placeLabel != null)
+                Positioned(
+                  top: 10,
+                  right: 14,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on,
+                          size: 14, color: Colors.white70),
+                      const SizedBox(width: 3),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 130),
+                        child: Text(
+                          _placeLabel!,
+                          textAlign: TextAlign.right,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentGold,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PrayerGuideListScreen(),
+                ),
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.self_improvement, size: 18),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'HADİ NAMAZ KILMAYI BERABER ÖĞRENELİM',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         ...vaktList.map(
           (entry) => Card(
             child: ListTile(

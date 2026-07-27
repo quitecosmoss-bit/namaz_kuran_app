@@ -1,5 +1,8 @@
 class PrayerTimes {
-  final String readableDate;
+  final int gregorianDay;
+  final int gregorianMonth;
+  final int gregorianYear;
+  final String weekdayEn; // "Saturday" gibi, İngilizce - kendi sözlüğümüzde çeviriyoruz
   final String hijriDate;
   final String fajr;
   final String sunrise;
@@ -9,7 +12,10 @@ class PrayerTimes {
   final String isha;
 
   PrayerTimes({
-    required this.readableDate,
+    required this.gregorianDay,
+    required this.gregorianMonth,
+    required this.gregorianYear,
+    required this.weekdayEn,
     required this.hijriDate,
     required this.fajr,
     required this.sunrise,
@@ -26,9 +32,13 @@ class PrayerTimes {
     final timings = data['timings'] as Map<String, dynamic>;
     final date = data['date'] as Map<String, dynamic>;
     final hijri = date['hijri'] as Map<String, dynamic>;
+    final gregorian = date['gregorian'] as Map<String, dynamic>;
 
     return PrayerTimes(
-      readableDate: date['readable'] ?? '',
+      gregorianDay: int.parse(gregorian['day'].toString()),
+      gregorianMonth: int.parse(gregorian['month']['number'].toString()),
+      gregorianYear: int.parse(gregorian['year'].toString()),
+      weekdayEn: gregorian['weekday']?['en'] ?? '',
       hijriDate: '${hijri['day']} ${hijri['month']['en']} ${hijri['year']}',
       fajr: _clean(timings['Fajr'] ?? ''),
       sunrise: _clean(timings['Sunrise'] ?? ''),

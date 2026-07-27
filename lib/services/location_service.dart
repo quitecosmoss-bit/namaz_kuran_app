@@ -1,3 +1,4 @@
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/app_exception.dart';
 
@@ -25,5 +26,41 @@ class LocationService {
     return Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.medium,
     );
+  }
+
+  /// Koordinatları "İlçe/İl" gibi okunabilir bir yer adına çevirir.
+  /// Bu özellik cihazın kendi konum servisine bağlı olduğundan
+  /// başarısız olursa null döner (uygulamanın geri kalanını etkilemez).
+  Future<String?> getPlaceLabel({
+    required double latitude,
+    required double longitude,
+    required String localeIdentifier,
+  }) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+        localeIdentifier: localeIdentifier,
+      );
+
+      if (placemarks.isEmpty) return null;
+      final p = placemarks.first;
+
+      final district = (p.subAdministrativeArea?.isNotEmpty ?? false)
+          ? p.subAdministrativeArea!
+          : (p.locality?.isNotEmpty ?? false)
+              ? p.locality!
+              : null;
+      final province = (p.administrativeArea?.isNotEmpty ?? false)
+          ? p.administrativeArea!
+          : null;
+
+      if (district != null && province != null && district != province) {
+        return '$district/$province';
+      }
+      return province ?? district;
+    } catch (_) {
+      return null;
+    }
   }
 }
