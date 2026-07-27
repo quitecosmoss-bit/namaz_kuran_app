@@ -8,6 +8,17 @@ workflows:
       - name: Eksikse Android platform klasörünü oluştur
         script: |
           flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
+      - name: Android compileSdk sürümünü yükselt
+        script: |
+          KTS=android/app/build.gradle.kts
+          GROOVY=android/app/build.gradle
+          if [ -f "$KTS" ]; then
+            sed -i.bak 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$KTS"
+            rm -f "$KTS.bak"
+          elif [ -f "$GROOVY" ]; then
+            sed -i.bak 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 36/' "$GROOVY"
+            rm -f "$GROOVY.bak"
+          fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -37,6 +48,17 @@ workflows:
       - name: Eksikse Android platform klasörünü oluştur
         script: |
           flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
+      - name: Android compileSdk sürümünü yükselt
+        script: |
+          KTS=android/app/build.gradle.kts
+          GROOVY=android/app/build.gradle
+          if [ -f "$KTS" ]; then
+            sed -i.bak 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' "$KTS"
+            rm -f "$KTS.bak"
+          elif [ -f "$GROOVY" ]; then
+            sed -i.bak 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 36/' "$GROOVY"
+            rm -f "$GROOVY.bak"
+          fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
