@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/prayer_guide_data.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'prayer_guide_detail_screen.dart';
 
 class PrayerGuideListScreen extends StatelessWidget {
@@ -9,13 +10,15 @@ class PrayerGuideListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Namaz Kılmayı Öğren')),
+      appBar: AppBar(title: const Text('Namaz Rehberi')),
+      bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
             'Aşağıdaki 5 vakit namazdan birini seç, adım adım ve '
-            'animasyonlu şekilde nasıl kılındığını öğren.',
+            'animasyonlu (isteğe bağlı sesli) şekilde nasıl kılındığını '
+            'öğren.',
             style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
           ),
           const SizedBox(height: 16),

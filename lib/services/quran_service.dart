@@ -25,6 +25,7 @@ class QuranService {
   };
 
   static const String arabicEdition = 'quran-uthmani';
+  static const String transliterationEdition = 'en.transliteration';
 
   Future<List<Surah>> getSurahList() async {
     final uri = Uri.parse('$_baseUrl/surah');
@@ -71,12 +72,31 @@ class QuranService {
     final translationJson =
         jsonDecode(results[1].body)['data']['ayahs'] as List;
 
+    // Latin harfli okunuş isteğe bağlı bir ek özellik: başarısız olursa
+    // ana ekranı (Arapça metin + meal) etkilememesi için ayrıca ve
+    // sessizce ele alınır.
+    List? transliterationJson;
+    try {
+      final tRes = await http.get(
+        Uri.parse('$_baseUrl/surah/$surahNumber/$transliterationEdition'),
+      );
+      if (tRes.statusCode == 200) {
+        transliterationJson = jsonDecode(tRes.body)['data']['ayahs'] as List;
+      }
+    } catch (_) {
+      transliterationJson = null;
+    }
+
     final List<AyahPair> pairs = [];
     for (int i = 0; i < arabicJson.length; i++) {
+      final hasTransliteration =
+          transliterationJson != null && i < transliterationJson.length;
       pairs.add(
         AyahPair(
           numberInSurah: arabicJson[i]['numberInSurah'],
           arabicText: arabicJson[i]['text'],
+          transliterationText:
+              hasTransliteration ? transliterationJson[i]['text'] : '',
           translationText:
               i < translationJson.length ? translationJson[i]['text'] : '',
         ),

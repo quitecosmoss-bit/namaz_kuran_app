@@ -8,6 +8,7 @@ import '../models/app_exception.dart';
 import '../providers/app_settings.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ad_banner_widget.dart';
 
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({super.key});
@@ -111,6 +112,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('qiblaTitle', lang))),
+      bottomNavigationBar: const AdBannerWidget(),
       body: _buildBody(lang),
     );
   }

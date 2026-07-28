@@ -9,7 +9,8 @@ import '../providers/app_settings.dart';
 import '../services/location_service.dart';
 import '../services/prayer_service.dart';
 import '../theme/app_theme.dart';
-import 'prayer_guide_list_screen.dart';
+import '../widgets/ad_banner_widget.dart';
+import 'islamic_calendar_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -166,7 +167,22 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final lang = context.watch<AppSettings>().language;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.get('prayerTimesTitle', lang))),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.calendar_month),
+          tooltip: 'Dini Günler Takvimi',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const IslamicCalendarScreen(),
+              ),
+            );
+          },
+        ),
+        title: Text(AppStrings.get('prayerTimesTitle', lang)),
+      ),
+      bottomNavigationBar: const AdBannerWidget(),
       body: RefreshIndicator(
         onRefresh: _fetchTimes,
         child: _buildBody(lang),
@@ -253,22 +269,23 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                const SizedBox(height: 6),
-                Text(
-                  _formatDuration(status.remaining),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$nextLabel ${AppStrings.get('remainingUntilSuffix', lang)}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-              ],
+                    const SizedBox(height: 6),
+                    Text(
+                      _formatDuration(status.remaining),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$nextLabel ${AppStrings.get('remainingUntilSuffix', lang)}',
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
                 ),
               ),
               if (_placeLabel != null)
@@ -300,46 +317,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentGold,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PrayerGuideListScreen(),
-                ),
-              );
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.self_improvement, size: 18),
-                SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    'HADİ NAMAZ KILMAYI BERABER ÖĞRENELİM',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         ...vaktList.map(
           (entry) => Card(
             child: ListTile(

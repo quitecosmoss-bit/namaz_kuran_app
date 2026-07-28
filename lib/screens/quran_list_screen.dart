@@ -7,6 +7,7 @@ import '../models/surah.dart';
 import '../providers/app_settings.dart';
 import '../services/quran_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'surah_detail_screen.dart';
 
 /// Sure adını, geçerli uygulama diline göre döner.
@@ -48,6 +49,7 @@ class _QuranListScreenState extends State<QuranListScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('quranTitle', lang))),
+      bottomNavigationBar: const AdBannerWidget(),
       body: FutureBuilder<List<Surah>>(
         future: _future,
         builder: (context, snapshot) {

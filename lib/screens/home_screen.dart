@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../localization/app_strings.dart';
 import '../providers/app_settings.dart';
+import 'prayer_guide_list_screen.dart';
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_list_screen.dart';
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _screens = const [
     PrayerTimesScreen(),
+    PrayerGuideListScreen(),
     QiblaScreen(),
     QuranListScreen(),
     SettingsScreen(),
@@ -34,10 +36,16 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.access_time),
             label: AppStrings.get('prayerTimesTitle', lang),
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.self_improvement),
+            label: 'Namaz Rehberi',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.explore),

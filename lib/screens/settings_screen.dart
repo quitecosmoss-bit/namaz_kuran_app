@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../localization/app_strings.dart';
 import '../providers/app_settings.dart';
 import '../services/quran_service.dart';
+import '../widgets/ad_banner_widget.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -14,6 +15,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('settingsTitle', lang))),
+      bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         children: [
           Padding(
@@ -44,6 +46,10 @@ class SettingsScreen extends StatelessWidget {
               },
             );
           }),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: AdBannerWidget(),
+          ),
         ],
       ),
     );

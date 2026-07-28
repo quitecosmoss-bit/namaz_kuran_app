@@ -96,6 +96,18 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                         textDirection: TextDirection.rtl,
                         style: const TextStyle(fontSize: 22, height: 1.8),
                       ),
+                      if (ayah.transliterationText.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          ayah.transliterationText,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade700,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                       const Divider(height: 24),
                       Text(
                         ayah.translationText,

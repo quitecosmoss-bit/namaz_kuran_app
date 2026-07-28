@@ -56,12 +56,31 @@ workflows:
             mv "$GROOVY.new" "$GROOVY"
             echo "Eklendi (dosyanın basina): $GROOVY"
           fi
-      - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
+      - name: Manifest izinlerini ve AdMob/TTS ayarlarını ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
-            awk '/<manifest /{print; print "    <uses-permission android:name=\"android.permission.INTERNET\" />"; print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />"; print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />"; next}1' "$MANIFEST" > "$MANIFEST.tmp"
+            awk '/<manifest /{
+              print;
+              print "    <uses-permission android:name=\"android.permission.INTERNET\" />";
+              print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />";
+              print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />";
+              print "    <queries>";
+              print "        <intent>";
+              print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />";
+              print "        </intent>";
+              print "    </queries>";
+              next
+            }1' "$MANIFEST" > "$MANIFEST.tmp"
             mv "$MANIFEST.tmp" "$MANIFEST"
+          fi
+          if ! grep -q "APPLICATION_ID" "$MANIFEST"; then
+            awk '/<application/{
+              print;
+              print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />";
+              next
+            }1' "$MANIFEST" > "$MANIFEST.tmp2"
+            mv "$MANIFEST.tmp2" "$MANIFEST"
           fi
       - name: Paketleri indir
         script: flutter pub get
@@ -133,12 +152,31 @@ workflows:
             mv "$GROOVY.new" "$GROOVY"
             echo "Eklendi (dosyanın basina): $GROOVY"
           fi
-      - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
+      - name: Manifest izinlerini ve AdMob/TTS ayarlarını ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
-            awk '/<manifest /{print; print "    <uses-permission android:name=\"android.permission.INTERNET\" />"; print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />"; print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />"; next}1' "$MANIFEST" > "$MANIFEST.tmp"
+            awk '/<manifest /{
+              print;
+              print "    <uses-permission android:name=\"android.permission.INTERNET\" />";
+              print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />";
+              print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />";
+              print "    <queries>";
+              print "        <intent>";
+              print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />";
+              print "        </intent>";
+              print "    </queries>";
+              next
+            }1' "$MANIFEST" > "$MANIFEST.tmp"
             mv "$MANIFEST.tmp" "$MANIFEST"
+          fi
+          if ! grep -q "APPLICATION_ID" "$MANIFEST"; then
+            awk '/<application/{
+              print;
+              print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />";
+              next
+            }1' "$MANIFEST" > "$MANIFEST.tmp2"
+            mv "$MANIFEST.tmp2" "$MANIFEST"
           fi
       - name: Paketleri indir
         script: flutter pub get

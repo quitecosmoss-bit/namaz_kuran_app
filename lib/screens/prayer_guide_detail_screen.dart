@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/prayer_guide.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'rekat_walkthrough_screen.dart';
 
 class PrayerGuideDetailScreen extends StatelessWidget {
@@ -12,6 +13,7 @@ class PrayerGuideDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(guide.name)),
+      bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
