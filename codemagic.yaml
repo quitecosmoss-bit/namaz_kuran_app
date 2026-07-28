@@ -59,27 +59,45 @@ workflows:
       - name: Manifest izinlerini ve AdMob/TTS ayarlarını ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
+          # NOT: <manifest ...> ve <application ...> etiketleri bazı Flutter
+          # surumlerinde birden fazla satira yayilabiliyor (her ozellik ayri
+          # satirda). Bu yuzden satirin ">" ile bittigi noktayi bulup, EKLEME
+          # islemini ancak etiket TAMAMEN kapandiktan sonra yapiyoruz.
           if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
-            awk '/<manifest /{
-              print;
-              print "    <uses-permission android:name=\"android.permission.INTERNET\" />";
-              print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />";
-              print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />";
-              print "    <queries>";
-              print "        <intent>";
-              print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />";
-              print "        </intent>";
-              print "    </queries>";
-              next
-            }1' "$MANIFEST" > "$MANIFEST.tmp"
+            awk '
+              BEGIN { in_tag=0; done=0 }
+              {
+                print
+                if ($0 ~ /<manifest/) { in_tag=1 }
+                if (in_tag && !done && $0 ~ />/) {
+                  print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
+                  print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />"
+                  print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />"
+                  print "    <queries>"
+                  print "        <intent>"
+                  print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />"
+                  print "        </intent>"
+                  print "    </queries>"
+                  done=1
+                  in_tag=0
+                }
+              }
+            ' "$MANIFEST" > "$MANIFEST.tmp"
             mv "$MANIFEST.tmp" "$MANIFEST"
           fi
           if ! grep -q "APPLICATION_ID" "$MANIFEST"; then
-            awk '/<application/{
-              print;
-              print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />";
-              next
-            }1' "$MANIFEST" > "$MANIFEST.tmp2"
+            awk '
+              BEGIN { in_tag=0; done=0 }
+              {
+                print
+                if ($0 ~ /<application/) { in_tag=1 }
+                if (in_tag && !done && $0 ~ />/) {
+                  print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />"
+                  done=1
+                  in_tag=0
+                }
+              }
+            ' "$MANIFEST" > "$MANIFEST.tmp2"
             mv "$MANIFEST.tmp2" "$MANIFEST"
           fi
       - name: Paketleri indir
@@ -155,27 +173,45 @@ workflows:
       - name: Manifest izinlerini ve AdMob/TTS ayarlarını ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
+          # NOT: <manifest ...> ve <application ...> etiketleri bazı Flutter
+          # surumlerinde birden fazla satira yayilabiliyor (her ozellik ayri
+          # satirda). Bu yuzden satirin ">" ile bittigi noktayi bulup, EKLEME
+          # islemini ancak etiket TAMAMEN kapandiktan sonra yapiyoruz.
           if ! grep -q "ACCESS_FINE_LOCATION" "$MANIFEST"; then
-            awk '/<manifest /{
-              print;
-              print "    <uses-permission android:name=\"android.permission.INTERNET\" />";
-              print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />";
-              print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />";
-              print "    <queries>";
-              print "        <intent>";
-              print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />";
-              print "        </intent>";
-              print "    </queries>";
-              next
-            }1' "$MANIFEST" > "$MANIFEST.tmp"
+            awk '
+              BEGIN { in_tag=0; done=0 }
+              {
+                print
+                if ($0 ~ /<manifest/) { in_tag=1 }
+                if (in_tag && !done && $0 ~ />/) {
+                  print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
+                  print "    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />"
+                  print "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />"
+                  print "    <queries>"
+                  print "        <intent>"
+                  print "            <action android:name=\"android.intent.action.TTS_SERVICE\" />"
+                  print "        </intent>"
+                  print "    </queries>"
+                  done=1
+                  in_tag=0
+                }
+              }
+            ' "$MANIFEST" > "$MANIFEST.tmp"
             mv "$MANIFEST.tmp" "$MANIFEST"
           fi
           if ! grep -q "APPLICATION_ID" "$MANIFEST"; then
-            awk '/<application/{
-              print;
-              print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />";
-              next
-            }1' "$MANIFEST" > "$MANIFEST.tmp2"
+            awk '
+              BEGIN { in_tag=0; done=0 }
+              {
+                print
+                if ($0 ~ /<application/) { in_tag=1 }
+                if (in_tag && !done && $0 ~ />/) {
+                  print "        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\" />"
+                  done=1
+                  in_tag=0
+                }
+              }
+            ' "$MANIFEST" > "$MANIFEST.tmp2"
             mv "$MANIFEST.tmp2" "$MANIFEST"
           fi
       - name: Paketleri indir
