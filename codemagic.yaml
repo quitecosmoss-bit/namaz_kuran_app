@@ -25,31 +25,31 @@ workflows:
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
           if [ -f "$KTS" ]; then
-            cat >> "$KTS" << 'GRADLE_EOF'
-
-subprojects {
-    afterEvaluate {
-        val androidExt = extensions.findByName("android")
-        if (androidExt is com.android.build.gradle.BaseExtension) {
-            androidExt.compileSdkVersion(36)
-        }
-    }
-}
-GRADLE_EOF
+            {
+              echo ""
+              echo "subprojects {"
+              echo "    afterEvaluate {"
+              echo "        val androidExt = extensions.findByName(\"android\")"
+              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
+              echo "            androidExt.compileSdkVersion(36)"
+              echo "        }"
+              echo "    }"
+              echo "}"
+            } >> "$KTS"
             echo "Eklendi: $KTS"
           elif [ -f "$GROOVY" ]; then
-            cat >> "$GROOVY" << 'GRADLE_EOF'
-
-subprojects {
-    afterEvaluate { proj ->
-        if (proj.hasProperty('android')) {
-            proj.android {
-                compileSdkVersion 36
-            }
-        }
-    }
-}
-GRADLE_EOF
+            {
+              echo ""
+              echo "subprojects {"
+              echo "    afterEvaluate { proj ->"
+              echo "        if (proj.hasProperty('android')) {"
+              echo "            proj.android {"
+              echo "                compileSdkVersion 36"
+              echo "            }"
+              echo "        }"
+              echo "    }"
+              echo "}"
+            } >> "$GROOVY"
             echo "Eklendi: $GROOVY"
           fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
@@ -98,31 +98,31 @@ GRADLE_EOF
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
           if [ -f "$KTS" ]; then
-            cat >> "$KTS" << 'GRADLE_EOF'
-
-subprojects {
-    afterEvaluate {
-        val androidExt = extensions.findByName("android")
-        if (androidExt is com.android.build.gradle.BaseExtension) {
-            androidExt.compileSdkVersion(36)
-        }
-    }
-}
-GRADLE_EOF
+            {
+              echo ""
+              echo "subprojects {"
+              echo "    afterEvaluate {"
+              echo "        val androidExt = extensions.findByName(\"android\")"
+              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
+              echo "            androidExt.compileSdkVersion(36)"
+              echo "        }"
+              echo "    }"
+              echo "}"
+            } >> "$KTS"
             echo "Eklendi: $KTS"
           elif [ -f "$GROOVY" ]; then
-            cat >> "$GROOVY" << 'GRADLE_EOF'
-
-subprojects {
-    afterEvaluate { proj ->
-        if (proj.hasProperty('android')) {
-            proj.android {
-                compileSdkVersion 36
-            }
-        }
-    }
-}
-GRADLE_EOF
+            {
+              echo ""
+              echo "subprojects {"
+              echo "    afterEvaluate { proj ->"
+              echo "        if (proj.hasProperty('android')) {"
+              echo "            proj.android {"
+              echo "                compileSdkVersion 36"
+              echo "            }"
+              echo "        }"
+              echo "    }"
+              echo "}"
+            } >> "$GROOVY"
             echo "Eklendi: $GROOVY"
           fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
