@@ -8,7 +8,7 @@ workflows:
       - name: Eksikse Android platform klasörünü oluştur
         script: |
           flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
-      - name: Android compileSdk sürümünü yükselt
+      - name: Uygulamanın compileSdk sürümünü yükselt
         script: |
           FILE=""
           if [ -f android/app/build.gradle.kts ]; then
@@ -16,13 +16,42 @@ workflows:
           elif [ -f android/app/build.gradle ]; then
             FILE=android/app/build.gradle
           fi
-          echo "Düzenlenecek dosya: $FILE"
           if [ -n "$FILE" ]; then
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-          echo "--- compileSdk satırı (kontrol) ---"
-          grep -n "compileSdk" "$FILE" || true
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
+        script: |
+          KTS=android/build.gradle.kts
+          GROOVY=android/build.gradle
+          if [ -f "$KTS" ]; then
+            cat >> "$KTS" << 'GRADLE_EOF'
+
+subprojects {
+    afterEvaluate {
+        val androidExt = extensions.findByName("android")
+        if (androidExt is com.android.build.gradle.BaseExtension) {
+            androidExt.compileSdkVersion(36)
+        }
+    }
+}
+GRADLE_EOF
+            echo "Eklendi: $KTS"
+          elif [ -f "$GROOVY" ]; then
+            cat >> "$GROOVY" << 'GRADLE_EOF'
+
+subprojects {
+    afterEvaluate { proj ->
+        if (proj.hasProperty('android')) {
+            proj.android {
+                compileSdkVersion 36
+            }
+        }
+    }
+}
+GRADLE_EOF
+            echo "Eklendi: $GROOVY"
+          fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -52,7 +81,7 @@ workflows:
       - name: Eksikse Android platform klasörünü oluştur
         script: |
           flutter create --platforms=android --org com.namazkuran --project-name namaz_kuran_app .
-      - name: Android compileSdk sürümünü yükselt
+      - name: Uygulamanın compileSdk sürümünü yükselt
         script: |
           FILE=""
           if [ -f android/app/build.gradle.kts ]; then
@@ -60,13 +89,42 @@ workflows:
           elif [ -f android/app/build.gradle ]; then
             FILE=android/app/build.gradle
           fi
-          echo "Düzenlenecek dosya: $FILE"
           if [ -n "$FILE" ]; then
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-          echo "--- compileSdk satırı (kontrol) ---"
-          grep -n "compileSdk" "$FILE" || true
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
+        script: |
+          KTS=android/build.gradle.kts
+          GROOVY=android/build.gradle
+          if [ -f "$KTS" ]; then
+            cat >> "$KTS" << 'GRADLE_EOF'
+
+subprojects {
+    afterEvaluate {
+        val androidExt = extensions.findByName("android")
+        if (androidExt is com.android.build.gradle.BaseExtension) {
+            androidExt.compileSdkVersion(36)
+        }
+    }
+}
+GRADLE_EOF
+            echo "Eklendi: $KTS"
+          elif [ -f "$GROOVY" ]; then
+            cat >> "$GROOVY" << 'GRADLE_EOF'
+
+subprojects {
+    afterEvaluate { proj ->
+        if (proj.hasProperty('android')) {
+            proj.android {
+                compileSdkVersion 36
+            }
+        }
+    }
+}
+GRADLE_EOF
+            echo "Eklendi: $GROOVY"
+          fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
