@@ -26,7 +26,6 @@ workflows:
           GROOVY=android/build.gradle
           if [ -f "$KTS" ]; then
             {
-              echo ""
               echo "subprojects {"
               echo "    afterEvaluate {"
               echo "        val androidExt = extensions.findByName(\"android\")"
@@ -35,11 +34,13 @@ workflows:
               echo "        }"
               echo "    }"
               echo "}"
-            } >> "$KTS"
-            echo "Eklendi: $KTS"
+              echo ""
+              cat "$KTS"
+            } > "$KTS.new"
+            mv "$KTS.new" "$KTS"
+            echo "Eklendi (dosyanın başına): $KTS"
           elif [ -f "$GROOVY" ]; then
             {
-              echo ""
               echo "subprojects {"
               echo "    afterEvaluate { proj ->"
               echo "        if (proj.hasProperty('android')) {"
@@ -49,8 +50,11 @@ workflows:
               echo "        }"
               echo "    }"
               echo "}"
-            } >> "$GROOVY"
-            echo "Eklendi: $GROOVY"
+              echo ""
+              cat "$GROOVY"
+            } > "$GROOVY.new"
+            mv "$GROOVY.new" "$GROOVY"
+            echo "Eklendi (dosyanın basina): $GROOVY"
           fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
@@ -99,7 +103,6 @@ workflows:
           GROOVY=android/build.gradle
           if [ -f "$KTS" ]; then
             {
-              echo ""
               echo "subprojects {"
               echo "    afterEvaluate {"
               echo "        val androidExt = extensions.findByName(\"android\")"
@@ -108,11 +111,13 @@ workflows:
               echo "        }"
               echo "    }"
               echo "}"
-            } >> "$KTS"
-            echo "Eklendi: $KTS"
+              echo ""
+              cat "$KTS"
+            } > "$KTS.new"
+            mv "$KTS.new" "$KTS"
+            echo "Eklendi (dosyanın başına): $KTS"
           elif [ -f "$GROOVY" ]; then
             {
-              echo ""
               echo "subprojects {"
               echo "    afterEvaluate { proj ->"
               echo "        if (proj.hasProperty('android')) {"
@@ -122,8 +127,11 @@ workflows:
               echo "        }"
               echo "    }"
               echo "}"
-            } >> "$GROOVY"
-            echo "Eklendi: $GROOVY"
+              echo ""
+              cat "$GROOVY"
+            } > "$GROOVY.new"
+            mv "$GROOVY.new" "$GROOVY"
+            echo "Eklendi (dosyanın basina): $GROOVY"
           fi
       - name: Konum ve internet izinlerini AndroidManifest.xml'e ekle
         script: |
