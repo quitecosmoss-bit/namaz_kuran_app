@@ -153,6 +153,61 @@ class AppStrings {
       'ru':
           'На этом устройстве не найден датчик компаса (магнитометр), эта функция недоступна.',
     },
+    'qiblaAccuracyWarning': {
+      'tr':
+          'Lütfen en doğru bilgiyi alabilmek için 30 saniye bekleyin.',
+      'en':
+          'Please wait 30 seconds to get the most accurate reading.',
+      'de':
+          'Bitte warte 30 Sekunden, um die genaueste Messung zu erhalten.',
+      'ru':
+          'Пожалуйста, подождите 30 секунд для получения точных данных.',
+    },
+    'notifSettingsTitle': {
+      'tr': 'Bildirim Ayarları',
+      'en': 'Notification Settings',
+      'de': 'Benachrichtigungseinstellungen',
+      'ru': 'Настройки уведомлений',
+    },
+    'notifSettingsDesc': {
+      'tr':
+          'Namaz vaktinden ne kadar önce hatırlatma bildirimi almak '
+          'istediğini seç.',
+      'en':
+          'Choose how long before each prayer time you want to receive a '
+          'reminder notification.',
+      'de':
+          'Wähle, wie lange vor jeder Gebetszeit du eine Erinnerung '
+          'erhalten möchtest.',
+      'ru':
+          'Выберите, за сколько времени до намаза вы хотите получать '
+          'уведомление-напоминание.',
+    },
+    'notifTitle1': {
+      'tr': 'NAMAZ VAKTİ YAKLAŞIYOR',
+      'en': 'PRAYER TIME IS APPROACHING',
+      'de': 'GEBETSZEIT RÜCKT NÄHER',
+      'ru': 'ВРЕМЯ МОЛИТВЫ ПРИБЛИЖАЕТСЯ',
+    },
+    'notifTitle2': {
+      'tr': 'ABDEST ALMALISIN',
+      'en': 'TIME TO PERFORM ABLUTION',
+      'de': 'ZEIT FÜR DIE WASCHUNG',
+      'ru': 'ВРЕМЯ СОВЕРШИТЬ ОМОВЕНИЕ',
+    },
+    'notifBody1Template': {
+      'tr': '{label} vaktine {duration} kaldı.',
+      'en': '{duration} left until {label}.',
+      'de': 'Noch {duration} bis {label}.',
+      'ru': 'Осталось {duration} до времени «{label}».',
+    },
+    'notifBody2Template': {
+      'tr': '{label} vaktine {duration} kaldı, abdestini tazele.',
+      'en': '{duration} left until {label} — time to perform ablution.',
+      'de': 'Noch {duration} bis {label} — Zeit für die rituelle Waschung.',
+      'ru':
+          'Осталось {duration} до времени «{label}» — совершите омовение.',
+    },
     'errorLocationServiceDisabled': {
       'tr': 'Konum servisleri kapalı. Lütfen telefonunuzun konum ayarını açın.',
       'en':

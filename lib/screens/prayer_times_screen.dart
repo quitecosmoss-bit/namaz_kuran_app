@@ -7,6 +7,7 @@ import '../models/app_exception.dart';
 import '../models/prayer_times.dart';
 import '../providers/app_settings.dart';
 import '../services/location_service.dart';
+import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ad_banner_widget.dart';
@@ -74,6 +75,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             '${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)}';
         _loading = false;
       });
+
+      if (mounted) {
+        final appSettings = context.read<AppSettings>();
+        NotificationService.instance.scheduleForPrayerTimes(
+          times,
+          minutesBefore1: appSettings.notifyMinutes1,
+          minutesBefore2: appSettings.notifyMinutes2,
+          lang: appSettings.language,
+        );
+      }
 
       _ticker?.cancel();
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -319,24 +330,67 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ),
         const SizedBox(height: 16),
         ...vaktList.map(
-          (entry) => Card(
-            child: ListTile(
-              leading:
-                  const Icon(Icons.access_time, color: AppTheme.primaryGreen),
-              title: Text(
-                AppStrings.get(entry.key, lang),
-                style: const TextStyle(fontWeight: FontWeight.w600),
+          (entry) {
+            final isCurrent = entry.key == status.currentKey;
+            return Card(
+              color: isCurrent
+                  ? AppTheme.accentGold.withOpacity(0.12)
+                  : null,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: isCurrent
+                    ? const BorderSide(
+                        color: AppTheme.accentGold, width: 2)
+                    : BorderSide.none,
               ),
-              trailing: Text(
-                entry.value,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              child: ListTile(
+                leading: Icon(
+                  isCurrent ? Icons.access_time_filled : Icons.access_time,
                   color: AppTheme.primaryGreen,
                 ),
+                title: Row(
+                  children: [
+                    Text(
+                      AppStrings.get(entry.key, lang),
+                      style: TextStyle(
+                        fontWeight:
+                            isCurrent ? FontWeight.bold : FontWeight.w600,
+                      ),
+                    ),
+                    if (isCurrent) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentGold,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'ŞU AN',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                trailing: Text(
+                  entry.value,
+                  style: TextStyle(
+                    fontSize: isCurrent ? 20 : 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryGreen,
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         Center(

@@ -3,6 +3,7 @@ import '../data/prayer_guide_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ad_banner_widget.dart';
 import 'prayer_guide_detail_screen.dart';
+import 'wudu_guide_screen.dart';
 
 class PrayerGuideListScreen extends StatelessWidget {
   const PrayerGuideListScreen({super.key});
@@ -22,6 +23,36 @@ class PrayerGuideListScreen extends StatelessWidget {
             style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
           ),
           const SizedBox(height: 16),
+          Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            color: AppTheme.accentGold.withOpacity(0.12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AppTheme.accentGold, width: 1.5),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(16),
+              leading: const CircleAvatar(
+                radius: 24,
+                backgroundColor: AppTheme.accentGold,
+                child: Icon(Icons.water_drop, color: Colors.white),
+              ),
+              title: const Text(
+                'ABDEST ALMA REHBERİ',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              subtitle: const Text('Adım adım doğru abdest alma şekli'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WuduGuideScreen()),
+                );
+              },
+            ),
+          ),
+          const Divider(height: 8),
+          const SizedBox(height: 8),
           ...prayerGuides.map(
             (guide) => Card(
               margin: const EdgeInsets.only(bottom: 12),

@@ -27,15 +27,24 @@ class _QiblaScreenState extends State<QiblaScreen> {
   bool _hasCompassSensor = true;
   StreamSubscription<CompassEvent>? _compassSub;
 
+  // Ekrana girildiğinde pusula/yön verisi kendini düzeltene kadar
+  // kullanıcıyı yanıltmamak için ilk 30 saniye boyunca gösterilen uyarı.
+  bool _showAccuracyWarning = true;
+  Timer? _accuracyWarningTimer;
+
   @override
   void initState() {
     super.initState();
     _init();
+    _accuracyWarningTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) setState(() => _showAccuracyWarning = false);
+    });
   }
 
   @override
   void dispose() {
     _compassSub?.cancel();
+    _accuracyWarningTimer?.cancel();
     super.dispose();
   }
 
@@ -113,7 +122,32 @@ class _QiblaScreenState extends State<QiblaScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.get('qiblaTitle', lang))),
       bottomNavigationBar: const AdBannerWidget(),
-      body: _buildBody(lang),
+      body: Column(
+        children: [
+          if (_showAccuracyWarning) _buildAccuracyWarning(lang),
+          Expanded(child: _buildBody(lang)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccuracyWarning(String lang) {
+    return Container(
+      width: double.infinity,
+      color: AppTheme.accentGold.withOpacity(0.15),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, size: 20, color: AppTheme.accentGold),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              AppStrings.get('qiblaAccuracyWarning', lang),
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
