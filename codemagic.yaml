@@ -20,7 +20,7 @@ workflows:
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini ve JVM hedefini zorla hizala
         script: |
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
@@ -28,13 +28,12 @@ workflows:
             {
               echo "subprojects {"
               echo "    afterEvaluate {"
-              echo "        val androidExt = extensions.findByName(\"android\")"
-              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
-              echo "            androidExt.compileSdkVersion(36)"
+              echo "        extensions.findByName(\"android\")?.withGroovyBuilder {"
+              echo "            setProperty(\"compileSdk\", 36)"
               echo "        }"
-              echo "        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {"
-              echo "            kotlinOptions {"
-              echo "                jvmTarget = \"11\""
+              echo "        pluginManager.withPlugin(\"org.jetbrains.kotlin.android\") {"
+              echo "            extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {"
+              echo "                jvmToolchain(11)"
               echo "            }"
               echo "        }"
               echo "    }"
@@ -53,10 +52,8 @@ workflows:
               echo "                compileSdkVersion 36"
               echo "            }"
               echo "        }"
-              echo "        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {"
-              echo "            kotlinOptions {"
-              echo "                jvmTarget = \"11\""
-              echo "            }"
+              echo "        if (proj.extensions.findByName('kotlin') != null) {"
+              echo "            proj.kotlin.jvmToolchain(11)"
               echo "        }"
               echo "    }"
               echo "}"
@@ -147,7 +144,7 @@ workflows:
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini ve JVM hedefini zorla hizala
         script: |
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
@@ -155,13 +152,12 @@ workflows:
             {
               echo "subprojects {"
               echo "    afterEvaluate {"
-              echo "        val androidExt = extensions.findByName(\"android\")"
-              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
-              echo "            androidExt.compileSdkVersion(36)"
+              echo "        extensions.findByName(\"android\")?.withGroovyBuilder {"
+              echo "            setProperty(\"compileSdk\", 36)"
               echo "        }"
-              echo "        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {"
-              echo "            kotlinOptions {"
-              echo "                jvmTarget = \"11\""
+              echo "        pluginManager.withPlugin(\"org.jetbrains.kotlin.android\") {"
+              echo "            extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {"
+              echo "                jvmToolchain(11)"
               echo "            }"
               echo "        }"
               echo "    }"
@@ -180,10 +176,8 @@ workflows:
               echo "                compileSdkVersion 36"
               echo "            }"
               echo "        }"
-              echo "        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {"
-              echo "            kotlinOptions {"
-              echo "                jvmTarget = \"11\""
-              echo "            }"
+              echo "        if (proj.extensions.findByName('kotlin') != null) {"
+              echo "            proj.kotlin.jvmToolchain(11)"
               echo "        }"
               echo "    }"
               echo "}"
