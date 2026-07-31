@@ -18,7 +18,7 @@ class HadithBannerWidget extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: AppTheme.primaryGreen,
-      padding: const EdgeInsets.only(top: 6, bottom: 8),
+      padding: const EdgeInsets.only(top: 3, bottom: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -26,14 +26,14 @@ class HadithBannerWidget extends StatelessWidget {
             'GÜNÜN HADİS-İ ŞERİFİ',
             style: TextStyle(
               color: AppTheme.accentGold,
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           SizedBox(
-            height: 20,
+            height: 16,
             child: _MarqueeText(text: fullText),
           ),
         ],
@@ -114,7 +114,7 @@ class _MarqueeTextState extends State<_MarqueeText>
                   overflow: TextOverflow.visible,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: 12,
                     height: 1.0,
                   ),
                 ),
