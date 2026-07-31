@@ -32,7 +32,8 @@ class _PrayerStatus {
   });
 }
 
-class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState extends State<PrayerTimesScreen>
+    with WidgetsBindingObserver {
   final LocationService _locationService = LocationService();
   final PrayerService _prayerService = PrayerService();
 
@@ -43,16 +44,47 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   String? _placeLabel;
   Timer? _ticker;
 
+  // _times hangi takvim gününe ait şu an ekranda tutuluyor; ticker ve
+  // yaşam döngüsü kontrolleri bunu gerçek "bugün" ile karşılaştırıp
+  // tarih değiştiğinde otomatik yeniden çekim tetikler.
+  DateTime? _timesDate;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fetchTimes();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Uygulama arka plandan (ör. bir gün sonra) ön plana dönerse, elimizdeki
+    // vakitler hâlâ o eski günden kalma olabilir - kontrol edip gerekirse
+    // taze veriyi çekiyoruz.
+    if (state == AppLifecycleState.resumed) {
+      _refetchIfDateChanged();
+    }
+  }
+
+  /// Ekranda tutulan vakitler artık "bugüne" ait değilse (gece yarısı geçmiş,
+  /// uygulama kapatılmadan açık kalmış olabilir) sessizce yeniden çeker.
+  void _refetchIfDateChanged() {
+    if (_loading) return;
+    final today = DateTime.now();
+    final isSameDay = _timesDate != null &&
+        _timesDate!.year == today.year &&
+        _timesDate!.month == today.month &&
+        _timesDate!.day == today.day;
+    if (!isSameDay) {
+      _fetchTimes();
+    }
   }
 
   Future<void> _fetchTimes() async {
@@ -71,6 +103,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
       setState(() {
         _times = times;
+        _timesDate = DateTime(
+          times.gregorianYear,
+          times.gregorianMonth,
+          times.gregorianDay,
+        );
         _cityInfo =
             '${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)}';
         _loading = false;
@@ -78,17 +115,40 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
       if (mounted) {
         final appSettings = context.read<AppSettings>();
-        NotificationService.instance.scheduleForPrayerTimes(
-          times,
-          minutesBefore1: appSettings.notifyMinutes1,
-          minutesBefore2: appSettings.notifyMinutes2,
-          lang: appSettings.language,
-        );
+        // ÖNEMLİ: Eskiden sadece o günün 5 vakti planlanıyordu, bu yüzden
+        // kullanıcı uygulamayı her gün açmadıkça bildirimler kesiliyordu.
+        // Şimdi önümüzdeki ~30 günü tek seferde çekip planlıyoruz; ekran
+        // her açıldığında bu pencere yeniden ileri kaydırılıyor. UI'ı
+        // bloklamaması için sonucunu beklemiyoruz (fire-and-forget), hata
+        // olursa (ağ yoksa vb.) sessizce yutuyoruz - zaten bir sonraki
+        // açılışta tekrar denenecek.
+        _prayerService
+            .getUpcomingPrayerTimes(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        )
+            .then((days) {
+          if (!mounted) return;
+          NotificationService.instance.scheduleForUpcomingDays(
+            days,
+            minutesBefore1: appSettings.notifyMinutes1,
+            minutesBefore2: appSettings.notifyMinutes2,
+            lang: appSettings.language,
+          );
+        }).catchError((_) {
+          // Aylık planlama başarısız olsa da bugünün vakitleri zaten
+          // yukarıda gösterildi; kullanıcı deneyimini bozmuyoruz.
+        });
       }
 
       _ticker?.cancel();
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        // Uygulama hiç arka plana atılmadan (didChangeAppLifecycleState
+        // tetiklenmeden) açık kalıp gece yarısını geçmesi ihtimaline karşı
+        // burada da tarih kontrolü yapıyoruz.
+        _refetchIfDateChanged();
+        setState(() {});
       });
 
       // İlçe/İl adını arka planda getir; başarısız olursa sessizce yok say,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -32,6 +33,13 @@ class _QiblaScreenState extends State<QiblaScreen> {
   // uyarı gösteriyoruz, süre dolunca kendiliğinden kayboluyor.
   bool _showAccuracyWarning = false;
   Timer? _accuracyWarningTimer;
+
+  // ÖNCEDEN: sensörün gerçek doğruluğuna hiç bakılmıyordu, sadece 30 sn
+  // sonra uyarı sabit olarak kayboluyordu; cihaz manyetik olarak
+  // kalibre olmasa (veya girişimden etkilense) bile kullanıcıya
+  // "artık doğru" mesajı veriliyordu. Şimdi CompassEvent.accuracy
+  // gerçekten okunuyor ve pusula kalibre olana kadar uyarı kalıcı oluyor.
+  bool _needsCalibration = false;
 
   @override
   void initState() {
@@ -75,9 +83,14 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
       _compassSub?.cancel();
       _compassSub = FlutterCompass.events!.listen((event) {
-        if (mounted && event.heading != null) {
-          setState(() => _heading = event.heading);
-        }
+        if (!mounted || event.heading == null) return;
+        setState(() {
+          // Ham sensör verisi tek başına çok "titrek" olabiliyor (özellikle
+          // ucuz manyetometreli cihazlarda); okumaları yumuşatarak okun
+          // sürekli sağa sola sıçramasını engelliyoruz.
+          _heading = _smoothHeading(_heading, event.heading!);
+          _needsCalibration = _isUnreliable(event.accuracy);
+        });
       });
     } catch (e) {
       setState(() {
@@ -106,6 +119,30 @@ class _QiblaScreenState extends State<QiblaScreen> {
     return (psi * 180 / pi + 360) % 360;
   }
 
+  /// 0-360 derece arasında dairesel yumuşatma yapar (359 -> 1 geçişinde
+  /// yanlışlıkla ters yöne dönmemesi için kısa yoldan farkı hesaplar).
+  double _smoothHeading(double? previous, double next) {
+    if (previous == null) return next;
+    var delta = next - previous;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    const smoothingFactor = 0.18; // 0-1: düşük = daha yumuşak ama yavaş tepki
+    final smoothed = previous + delta * smoothingFactor;
+    return (smoothed + 360) % 360;
+  }
+
+  /// flutter_compass'ın verdiği `accuracy` değeri platforma göre farklı
+  /// anlam taşır: Android'de SensorManager doğruluk seviyesi (0=güvenilmez
+  /// ... 3=yüksek), iOS'ta ise derece cinsinden hata payıdır (küçük=iyi,
+  /// negatif=geçersiz). Bu değer daha önce hiç okunmuyordu.
+  bool _isUnreliable(double? accuracy) {
+    if (accuracy == null) return false;
+    if (Platform.isIOS) {
+      return accuracy < 0 || accuracy > 25;
+    }
+    return accuracy < 2;
+  }
+
   String _errorKey(AppErrorCode code) {
     switch (code) {
       case AppErrorCode.locationServiceDisabled:
@@ -128,14 +165,15 @@ class _QiblaScreenState extends State<QiblaScreen> {
       bottomNavigationBar: const AdBannerWidget(),
       body: Column(
         children: [
-          if (_showAccuracyWarning) _buildAccuracyWarning(lang),
+          if (_showAccuracyWarning || _needsCalibration)
+            _buildAccuracyWarning(lang, calibration: _needsCalibration),
           Expanded(child: _buildBody(lang)),
         ],
       ),
     );
   }
 
-  Widget _buildAccuracyWarning(String lang) {
+  Widget _buildAccuracyWarning(String lang, {required bool calibration}) {
     return Container(
       width: double.infinity,
       color: Colors.amber.shade100,
@@ -147,7 +185,14 @@ class _QiblaScreenState extends State<QiblaScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              AppStrings.get('qiblaAccuracyWarning', lang),
+              // Sensör gerçekten kalibre değilse (ör. cihaz manyetik
+              // girişimden etkileniyorsa) kullanıcıya "8 çiz" talimatını
+              // sürekli gösteriyoruz; sadece ilk açılış uyarısı ise eski
+              // genel mesaj kalıyor.
+              AppStrings.get(
+                calibration ? 'qiblaCalibrate' : 'qiblaAccuracyWarning',
+                lang,
+              ),
               style: TextStyle(
                 color: Colors.amber.shade900,
                 fontSize: 13,

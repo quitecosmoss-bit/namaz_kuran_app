@@ -9,12 +9,16 @@ import '../models/prayer_times.dart';
 /// Namaz vakitlerinden önce iki hatırlatma bildirimi planlar. Süreler ve
 /// dil, kullanıcının Ayarlar ekranındaki tercihlerine göre değişir.
 ///
-/// NOT: Bu bildirimler o günün namaz vakitleri için, uygulama Namaz
-/// Vakitleri ekranı her açıldığında/yenilendiğinde planlanır. Telefonun
-/// arka planda kendiliğinden her gün yeni vakitleri hesaplayabilmesi için
-/// (uygulama hiç açılmadan) ayrı bir arka plan servisi gerekir; bu ilk
-/// sürümde uygulamanın günde en az bir kez açılması yeterli - bir sonraki
-/// açılışta o günün tüm hatırlatmaları otomatik olarak yeniden kurulur.
+/// Bildirimler flutter_local_notifications ile işletim sistemi seviyesinde
+/// (exact alarm) planlanır; bu sayede uygulama tamamen kapalı/öldürülmüş
+/// olsa bile zamanı geldiğinde tetiklenirler - uygulamanın o anda çalışıyor
+/// olması gerekmez.
+///
+/// scheduleForUpcomingDays ile tek seferde birden çok günün (varsayılan 30
+/// gün) hatırlatmaları önceden kurulur; böylece kullanıcı uygulamayı her
+/// gün açmasa bile bildirimler aksamadan gelmeye devam eder. Uygulama en
+/// az bu pencere içinde (örn. ayda bir) bir kez açıldığında planlama
+/// otomatik olarak bir sonraki döneme uzatılır.
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
@@ -67,6 +71,20 @@ class NotificationService {
       now.year,
       now.month,
       now.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+  }
+
+  /// [_parseTimeToday]'den farklı olarak saati her zaman "bugün"e göre değil,
+  /// ilgili [times] kaydının kendi tarihine göre çözer - çoklu gün planlaması
+  /// (scheduleForUpcomingDays) için gerekli.
+  DateTime _parseTimeForDate(PrayerTimes times, String hm) {
+    final parts = hm.split(':');
+    return DateTime(
+      times.gregorianYear,
+      times.gregorianMonth,
+      times.gregorianDay,
       int.parse(parts[0]),
       int.parse(parts[1]),
     );
@@ -158,6 +176,64 @@ class NotificationService {
         body: _fillTemplate(bodyTemplate2, label, duration2Label),
         dateTime: vaktDateTime.subtract(Duration(minutes: minutesBefore2)),
       );
+    }
+  }
+
+  /// [days] içindeki her gün için (bkz. PrayerService.getUpcomingPrayerTimes)
+  /// 5 vakit x 2 bildirim planlar. Kimlikler gün sırasına göre (0, 1, 2, ...)
+  /// türetilir - "bugünden itibaren N. gün" - mutlak takvim tarihine göre
+  /// değil. Böylece her açılışta aynı offsetteki bildirimler üzerine
+  /// yazılır ve zamanla birikip çakışma/gereksiz bildirim oluşmaz.
+  Future<void> scheduleForUpcomingDays(
+    List<PrayerTimes> days, {
+    required int minutesBefore1,
+    required int minutesBefore2,
+    required String lang,
+  }) async {
+    if (!_initialized) await initialize();
+    if (days.isEmpty) return;
+
+    final title1 = AppStrings.get('notifTitle1', lang);
+    final title2 = AppStrings.get('notifTitle2', lang);
+    final bodyTemplate1 = AppStrings.get('notifBody1Template', lang);
+    final bodyTemplate2 = AppStrings.get('notifBody2Template', lang);
+    final duration1Label = notificationDurationLabel(minutesBefore1, lang);
+    final duration2Label = notificationDurationLabel(minutesBefore2, lang);
+
+    for (var dayIndex = 0; dayIndex < days.length; dayIndex++) {
+      final times = days[dayIndex];
+      final vakitTimes = <String, String>{
+        'vaktFajr': times.fajr,
+        'vaktDhuhr': times.dhuhr,
+        'vaktAsr': times.asr,
+        'vaktMaghrib': times.maghrib,
+        'vaktIsha': times.isha,
+      };
+
+      // Her gün için ayrı bir kimlik bloğu (0, 1000, 2000, ...) ayırıyoruz;
+      // baseId'ler (100-500) bu bloğun içine sığdığından çakışma olmaz.
+      final dayBlockId = dayIndex * 1000;
+
+      for (final entry in vakitTimes.entries) {
+        final vaktKey = entry.key;
+        final vaktDateTime = _parseTimeForDate(times, entry.value);
+        final label = AppStrings.get(vaktKey, lang);
+        final baseId = _baseIds[vaktKey]!;
+
+        await _scheduleOne(
+          id: dayBlockId + baseId + 1,
+          title: title1,
+          body: _fillTemplate(bodyTemplate1, label, duration1Label),
+          dateTime: vaktDateTime.subtract(Duration(minutes: minutesBefore1)),
+        );
+
+        await _scheduleOne(
+          id: dayBlockId + baseId + 2,
+          title: title2,
+          body: _fillTemplate(bodyTemplate2, label, duration2Label),
+          dateTime: vaktDateTime.subtract(Duration(minutes: minutesBefore2)),
+        );
+      }
     }
   }
 }
