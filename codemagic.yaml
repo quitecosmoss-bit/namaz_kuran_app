@@ -20,7 +20,7 @@ workflows:
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini ve JVM hedefini zorla hizala
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
         script: |
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
@@ -28,15 +28,9 @@ workflows:
             {
               echo "subprojects {"
               echo "    afterEvaluate {"
-              echo "        extensions.findByName(\"android\")?.withGroovyBuilder {"
-              echo "            setProperty(\"compileSdk\", 36)"
-              echo "        }"
-              echo "        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {"
-              echo "            compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)"
-              echo "        }"
-              echo "        tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {"
-              echo "            sourceCompatibility = \"17\""
-              echo "            targetCompatibility = \"17\""
+              echo "        val androidExt = extensions.findByName(\"android\")"
+              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
+              echo "            androidExt.compileSdkVersion(36)"
               echo "        }"
               echo "    }"
               echo "}"
@@ -53,13 +47,6 @@ workflows:
               echo "            proj.android {"
               echo "                compileSdkVersion 36"
               echo "            }"
-              echo "        }"
-              echo "        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {"
-              echo "            compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)"
-              echo "        }"
-              echo "        proj.tasks.withType(JavaCompile).configureEach {"
-              echo "            sourceCompatibility = JavaVersion.VERSION_17"
-              echo "            targetCompatibility = JavaVersion.VERSION_17"
               echo "        }"
               echo "    }"
               echo "}"
@@ -150,7 +137,7 @@ workflows:
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
-      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini ve JVM hedefini zorla hizala
+      - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
         script: |
           KTS=android/build.gradle.kts
           GROOVY=android/build.gradle
@@ -158,15 +145,9 @@ workflows:
             {
               echo "subprojects {"
               echo "    afterEvaluate {"
-              echo "        extensions.findByName(\"android\")?.withGroovyBuilder {"
-              echo "            setProperty(\"compileSdk\", 36)"
-              echo "        }"
-              echo "        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {"
-              echo "            compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)"
-              echo "        }"
-              echo "        tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {"
-              echo "            sourceCompatibility = \"17\""
-              echo "            targetCompatibility = \"17\""
+              echo "        val androidExt = extensions.findByName(\"android\")"
+              echo "        if (androidExt is com.android.build.gradle.BaseExtension) {"
+              echo "            androidExt.compileSdkVersion(36)"
               echo "        }"
               echo "    }"
               echo "}"
@@ -183,13 +164,6 @@ workflows:
               echo "            proj.android {"
               echo "                compileSdkVersion 36"
               echo "            }"
-              echo "        }"
-              echo "        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {"
-              echo "            compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)"
-              echo "        }"
-              echo "        proj.tasks.withType(JavaCompile).configureEach {"
-              echo "            sourceCompatibility = JavaVersion.VERSION_17"
-              echo "            targetCompatibility = JavaVersion.VERSION_17"
               echo "        }"
               echo "    }"
               echo "}"

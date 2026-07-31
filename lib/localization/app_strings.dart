@@ -155,13 +155,13 @@ class AppStrings {
     },
     'qiblaAccuracyWarning': {
       'tr':
-          'Lütfen en doğru bilgiyi alabilmek için 30 saniye bekleyin.',
+          'Lütfen en doğru bilgiyi alabilmek için 30 saniye bekleyin. Yön ilk açıldığında hatalı gösterebilir, kısa süre içinde kendiliğinden düzelir.',
       'en':
-          'Please wait 30 seconds to get the most accurate reading.',
+          'Please wait 30 seconds to get the most accurate reading. The direction may be off at first and will correct itself shortly.',
       'de':
-          'Bitte warte 30 Sekunden, um die genaueste Messung zu erhalten.',
+          'Bitte warte 30 Sekunden, um die genaueste Anzeige zu erhalten. Die Richtung kann anfangs ungenau sein und korrigiert sich in Kürze von selbst.',
       'ru':
-          'Пожалуйста, подождите 30 секунд для получения точных данных.',
+          'Пожалуйста, подождите 30 секунд для получения наиболее точных данных. Направление сначала может быть неточным и вскоре исправится само.',
     },
     'notifSettingsTitle': {
       'tr': 'Bildirim Ayarları',

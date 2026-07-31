@@ -27,18 +27,16 @@ class _QiblaScreenState extends State<QiblaScreen> {
   bool _hasCompassSensor = true;
   StreamSubscription<CompassEvent>? _compassSub;
 
-  // Ekrana girildiğinde pusula/yön verisi kendini düzeltene kadar
-  // kullanıcıyı yanıltmamak için ilk 30 saniye boyunca gösterilen uyarı.
-  bool _showAccuracyWarning = true;
+  // Ekrana girildiğinde pusula/sensör verisi henüz kararlı olmayabiliyor.
+  // Yanlış yönlendirme yapmamak için ilk 30 saniye boyunca üstte bir
+  // uyarı gösteriyoruz, süre dolunca kendiliğinden kayboluyor.
+  bool _showAccuracyWarning = false;
   Timer? _accuracyWarningTimer;
 
   @override
   void initState() {
     super.initState();
     _init();
-    _accuracyWarningTimer = Timer(const Duration(seconds: 30), () {
-      if (mounted) setState(() => _showAccuracyWarning = false);
-    });
   }
 
   @override
@@ -52,6 +50,12 @@ class _QiblaScreenState extends State<QiblaScreen> {
     setState(() {
       _loading = true;
       _errorCode = null;
+      _showAccuracyWarning = true;
+    });
+
+    _accuracyWarningTimer?.cancel();
+    _accuracyWarningTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) setState(() => _showAccuracyWarning = false);
     });
 
     try {
@@ -134,16 +138,21 @@ class _QiblaScreenState extends State<QiblaScreen> {
   Widget _buildAccuracyWarning(String lang) {
     return Container(
       width: double.infinity,
-      color: AppTheme.accentGold.withOpacity(0.15),
+      color: Colors.amber.shade100,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 20, color: AppTheme.accentGold),
-          const SizedBox(width: 10),
+          Icon(Icons.info_outline, color: Colors.amber.shade900, size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               AppStrings.get('qiblaAccuracyWarning', lang),
-              style: const TextStyle(fontSize: 13),
+              style: TextStyle(
+                color: Colors.amber.shade900,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

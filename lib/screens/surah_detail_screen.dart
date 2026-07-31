@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import '../localization/app_strings.dart';
 import '../models/ayah.dart';
 import '../models/surah.dart';
 import '../providers/app_settings.dart';
+import '../services/interstitial_ad_service.dart';
 import '../services/quran_service.dart';
 import '../theme/app_theme.dart';
 import 'quran_list_screen.dart';
@@ -23,16 +23,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
   Future<List<AyahPair>>? _future;
   String? _loadedForLanguage;
 
-  // !!! ÖNEMLİ - YAYINLAMADAN ÖNCE MUTLAKA OKU !!!
-  // Bu, Google'ın herkese açık TEST geçiş (interstitial) reklam birimi
-  // kimliğidir - gerçek para kazandırmaz, sadece test amaçlıdır.
-  // Play Store'da yayınlamadan önce ad_banner_widget.dart'taki notta
-  // anlatıldığı gibi kendi gerçek AdMob geçiş reklamı ID'niz ile değiştirin.
-  static const String _testInterstitialAdUnitId =
-      'ca-app-pub-3940256099942544/1033173712';
-
-  InterstitialAd? _interstitialAd;
-  bool _isExiting = false;
+  @override
+  void initState() {
+    super.initState();
+    // Kullanıcı sureyi okurken reklamı arka planda hazırlıyoruz ki
+    // çıkışta beklemeden gösterebilelim.
+    InterstitialAdService.instance.preload();
+  }
 
   void _load(String languageCode) {
     _loadedForLanguage = languageCode;
@@ -40,61 +37,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       surahNumber: widget.surah.number,
       languageCode: languageCode,
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInterstitialAd();
-  }
-
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: _testInterstitialAdUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-        },
-        onAdFailedToLoad: (error) {
-          _interstitialAd = null;
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _interstitialAd?.dispose();
-    super.dispose();
-  }
-
-  /// Sure ekranından geri çıkılırken (geri tuşu veya başka bir sekmeye
-  /// dönüş için ekranın kapatılması) çağrılır. Reklam yüklenmişse önce
-  /// tam ekran geçiş reklamını gösterir, kapatıldığında ekrandan çıkar.
-  /// Reklam henüz yüklenmediyse kullanıcıyı bekletmeden direkt çıkar.
-  Future<void> _handleExit() async {
-    if (_isExiting) return;
-    _isExiting = true;
-
-    final ad = _interstitialAd;
-    if (ad == null) {
-      if (mounted) Navigator.of(context).pop();
-      return;
-    }
-
-    _interstitialAd = null;
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        if (mounted) Navigator.of(context).pop();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        if (mounted) Navigator.of(context).pop();
-      },
-    );
-    ad.show();
   }
 
   @override
@@ -106,12 +48,21 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     }
 
     return PopScope(
+      // Geri çıkışı burada yakalayıp önce geçiş reklamını gösteriyoruz,
+      // reklam kapandığında (veya hiç yüklenemediyse hemen) sayfadan
+      // gerçekten çıkıyoruz. Bu sayede kullanıcı sureden çıkarken veya
+      // başka bir sekmeye geçerken (ki bunun için önce bu ekrandan
+      // çıkması gerekiyor) reklamı görmüş oluyor.
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
+      onPopInvokedWithDidPop: (didPop, result) {
         if (didPop) return;
-        await _handleExit();
+        InterstitialAdService.instance.showIfReady(
+          onClosed: () {
+            if (mounted) Navigator.of(context).pop();
+          },
+        );
       },
-        child: Scaffold(
+      child: Scaffold(
         appBar: AppBar(
           title: Text(surahDisplayName(widget.surah, lang)),
         ),
@@ -194,7 +145,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
             );
           },
         ),
-        ),
+      ),
     );
   }
 }

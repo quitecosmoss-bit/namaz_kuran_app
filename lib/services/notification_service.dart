@@ -29,8 +29,7 @@ class NotificationService {
 
     tz_data.initializeTimeZones();
     try {
-      final String timezoneName =
-          (await FlutterTimezone.getLocalTimezone()).identifier;
+      final String timezoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timezoneName));
     } catch (_) {
       // Cihazın saat dilimi alınamazsa varsayılan (UTC) ile devam edilir;
@@ -107,10 +106,6 @@ class NotificationService {
         tz.TZDateTime.from(dateTime, tz.local),
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        // pubspec.yaml'da flutter_local_notifications ^18.0.1 kullanıldığı
-        // için (bu parametre 19.0.0'da kaldırıldı) hala zorunlu.
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (_) {
       // İzin verilmediyse ya da cihaz desteklemiyorsa sessizce atla;
