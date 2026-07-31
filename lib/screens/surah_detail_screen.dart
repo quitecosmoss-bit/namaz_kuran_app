@@ -54,7 +54,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
       // başka bir sekmeye geçerken (ki bunun için önce bu ekrandan
       // çıkması gerekiyor) reklamı görmüş oluyor.
       canPop: false,
-      onPopInvokedWithDidPop: (didPop, result) {
+      onPopInvoked: (didPop) {
         if (didPop) return;
         InterstitialAdService.instance.showIfReady(
           onClosed: () {

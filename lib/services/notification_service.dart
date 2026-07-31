@@ -106,6 +106,8 @@ class NotificationService {
         tz.TZDateTime.from(dateTime, tz.local),
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (_) {
       // İzin verilmediyse ya da cihaz desteklemiyorsa sessizce atla;
