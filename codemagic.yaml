@@ -20,6 +20,50 @@ workflows:
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
           fi
+      - name: flutter_local_notifications için core library desugaring'i etkinleştir
+        script: |
+          # flutter_local_notifications paketi Java 8+ API'lerini kullanıyor,
+          # bu da Android tarafında "core library desugaring"in açık olmasını
+          # gerektiriyor. Var olan compileOptions bloğunu aramak yerine,
+          # Gradle'ın izin verdiği şekilde dosyanın sonuna EK bir android{}
+          # ve dependencies{} bloğu ekliyoruz - bu, var olan ayarların
+          # üzerine yazmadan sadece eksik ayarı tamamlar.
+          FILE=""
+          if [ -f android/app/build.gradle.kts ]; then
+            FILE=android/app/build.gradle.kts
+          elif [ -f android/app/build.gradle ]; then
+            FILE=android/app/build.gradle
+          fi
+          if [ -n "$FILE" ]; then
+            if [[ "$FILE" == *.kts ]]; then
+              {
+                echo ""
+                echo "android {"
+                echo "    compileOptions {"
+                echo "        isCoreLibraryDesugaringEnabled = true"
+                echo "    }"
+                echo "}"
+                echo ""
+                echo "dependencies {"
+                echo "    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")"
+                echo "}"
+              } >> "$FILE"
+            else
+              {
+                echo ""
+                echo "android {"
+                echo "    compileOptions {"
+                echo "        coreLibraryDesugaringEnabled true"
+                echo "    }"
+                echo "}"
+                echo ""
+                echo "dependencies {"
+                echo "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
+                echo "}"
+              } >> "$FILE"
+            fi
+            echo "Eklendi (dosyanın sonuna): $FILE"
+          fi
       - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
         script: |
           KTS=android/build.gradle.kts
@@ -186,6 +230,50 @@ workflows:
           if [ -n "$FILE" ]; then
             sed -i.bak 's/flutter\.compileSdkVersion/36/g' "$FILE"
             rm -f "$FILE.bak"
+          fi
+      - name: flutter_local_notifications için core library desugaring'i etkinleştir
+        script: |
+          # flutter_local_notifications paketi Java 8+ API'lerini kullanıyor,
+          # bu da Android tarafında "core library desugaring"in açık olmasını
+          # gerektiriyor. Var olan compileOptions bloğunu aramak yerine,
+          # Gradle'ın izin verdiği şekilde dosyanın sonuna EK bir android{}
+          # ve dependencies{} bloğu ekliyoruz - bu, var olan ayarların
+          # üzerine yazmadan sadece eksik ayarı tamamlar.
+          FILE=""
+          if [ -f android/app/build.gradle.kts ]; then
+            FILE=android/app/build.gradle.kts
+          elif [ -f android/app/build.gradle ]; then
+            FILE=android/app/build.gradle
+          fi
+          if [ -n "$FILE" ]; then
+            if [[ "$FILE" == *.kts ]]; then
+              {
+                echo ""
+                echo "android {"
+                echo "    compileOptions {"
+                echo "        isCoreLibraryDesugaringEnabled = true"
+                echo "    }"
+                echo "}"
+                echo ""
+                echo "dependencies {"
+                echo "    coreLibraryDesugaring(\"com.android.tools:desugar_jdk_libs:2.1.4\")"
+                echo "}"
+              } >> "$FILE"
+            else
+              {
+                echo ""
+                echo "android {"
+                echo "    compileOptions {"
+                echo "        coreLibraryDesugaringEnabled true"
+                echo "    }"
+                echo "}"
+                echo ""
+                echo "dependencies {"
+                echo "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
+                echo "}"
+              } >> "$FILE"
+            fi
+            echo "Eklendi (dosyanın sonuna): $FILE"
           fi
       - name: Tüm alt modüllerin (paketler dahil) compileSdk'sini zorla yükselt
         script: |
