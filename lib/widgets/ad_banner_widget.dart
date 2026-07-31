@@ -3,17 +3,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// Google AdMob banner reklamı gösteren, tekrar kullanılabilir widget.
 ///
-/// !!! ÖNEMLİ - YAYINLAMADAN ÖNCE MUTLAKA OKU !!!
-/// Aşağıdaki reklam birimi kimliği (adUnitId) Google'ın herkese açık
-/// TEST kimliğidir - gerçek para kazandırmaz, sadece test amaçlıdır.
-/// Play Store'da YAYINLAMADAN ÖNCE:
-///   1. admob.google.com üzerinden kendi hesabını oluştur
-///   2. Uygulamanı ekleyip banner reklam birimleri oluştur
-///   3. Aşağıdaki _testAdUnitId sabitini kendi gerçek ID'nle değiştir
-///   4. AndroidManifest.xml'deki APPLICATION_ID meta-data değerini de
-///      kendi gerçek AdMob Uygulama ID'nle değiştir (bkz. codemagic.yaml)
-/// Test ID'siyle yayına çıkarsan reklamdan gelir elde edemezsin ve
-/// Google, gerçek reklam yerine test reklamı göstermeye devam eder.
+/// Gerçek AdMob reklam birimi ID'si kullanılıyor (App ID:
+/// ca-app-pub-4249557260220799~6964481678 - bkz. codemagic.yaml).
+/// Play Store'a yüklemeden önce AdMob panelinde bu reklam biriminin
+/// "aktif" durumda olduğunu ve uygulamanın AdMob'da onaylandığını
+/// kontrol et.
 class AdBannerWidget extends StatefulWidget {
   const AdBannerWidget({super.key});
 
@@ -25,9 +19,9 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
 
-  // TODO: Yayına almadan önce kendi AdMob reklam birimi ID'niz ile değiştirin.
+  // Gerçek AdMob banner reklam birimi ID'si.
   static const String _testAdUnitId =
-      'ca-app-pub-3940256099942544/6300978111';
+      'ca-app-pub-4249557260220799/8400138263';
 
   @override
   void initState() {

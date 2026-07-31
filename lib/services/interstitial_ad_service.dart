@@ -5,13 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 /// sekmeye geçerken) gösterilen tam ekran (interstitial) reklamını
 /// yöneten servis.
 ///
-/// !!! ÖNEMLİ - YAYINLAMADAN ÖNCE MUTLAKA OKU !!!
-/// Aşağıdaki reklam birimi kimliği (adUnitId) Google'ın herkese açık
-/// TEST kimliğidir - gerçek para kazandırmaz, sadece test amaçlıdır.
-/// Play Store'da YAYINLAMADAN ÖNCE, banner reklamda olduğu gibi
-/// (bkz. ad_banner_widget.dart) admob.google.com üzerinden kendi
-/// "Interstitial" reklam biriminizi oluşturup _testAdUnitId sabitini
-/// gerçek ID'niz ile değiştirin.
+/// Gerçek AdMob interstitial reklam birimi ID'si kullanılıyor.
 ///
 /// NOT: AdMob interstitial reklamların gösterim süresi bizim tarafımızdan
 /// sabitlenemez — reklamın kapatma (X) butonu ne zaman aktif olacağını
@@ -24,10 +18,9 @@ class InterstitialAdService {
   InterstitialAdService._();
   static final InterstitialAdService instance = InterstitialAdService._();
 
-  // TODO: Yayına almadan önce kendi AdMob interstitial reklam birimi
-  // ID'niz ile değiştirin.
+  // Gerçek AdMob interstitial reklam birimi ID'si.
   static const String _testAdUnitId =
-      'ca-app-pub-3940256099942544/1033173712';
+      'ca-app-pub-4249557260220799/2725853764';
 
   InterstitialAd? _ad;
   bool _isLoading = false;
