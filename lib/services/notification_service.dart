@@ -29,8 +29,8 @@ class NotificationService {
 
     tz_data.initializeTimeZones();
     try {
-      final String timezoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timezoneName));
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
     } catch (_) {
       // Cihazın saat dilimi alınamazsa varsayılan (UTC) ile devam edilir;
       // bildirimler yine de çalışır ama saat kayması olabilir.
