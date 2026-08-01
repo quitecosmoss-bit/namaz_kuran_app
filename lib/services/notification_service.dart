@@ -116,7 +116,21 @@ class NotificationService {
     required String body,
     required DateTime dateTime,
   }) async {
-    if (dateTime.isBefore(DateTime.now())) return;
+    final now = DateTime.now();
+    if (dateTime.isBefore(now)) {
+      // ÖNEMLİ: Bu bir hata değil ama sonucu aynı - bildirim hiç
+      // kurulmuyor. Hesaplanan saat zaten geçmişse (ör. saat dilimi/tarih
+      // hesaplamasında bir kayma varsa, ya da vakit bugün için çoktan
+      // geçtiyse) buraya sessizce düşülüyordu. Artık en azından debug
+      // modda görünür.
+      if (kDebugMode) {
+        debugPrint(
+          'Bildirim ATLANDI (id=$id): hesaplanan zaman ($dateTime) '
+          'şu andan ($now) önce - kurulmadı.',
+        );
+      }
+      return;
+    }
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -148,6 +162,9 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
+      if (kDebugMode) {
+        debugPrint('Bildirim PLANLANDI (id=$id): $dateTime -> "$title"');
+      }
     } catch (e, st) {
       // ÖNEMLİ: Burası daha önce tamamen sessizdi - "tam saat izni"
       // (exact alarm) verilmemişse plugin hata fırlatır ve bildirim hiç
@@ -261,6 +278,18 @@ class NotificationService {
           dateTime: vaktDateTime.subtract(Duration(minutes: minutesBefore2)),
         );
       }
+    }
+
+    if (kDebugMode) {
+      // Android'in (bizim kodumuzun değil, işletim sisteminin) o an
+      // gerçekten elinde tuttuğu planlanmış bildirim sayısı. Bu sayı
+      // yukarıdaki "PLANLANDI" loglarının toplamıyla eşleşmiyorsa,
+      // sistem bir yerlerde iptal etmiş demektir (ör. force-stop sonrası).
+      final pending = await _plugin.pendingNotificationRequests();
+      debugPrint(
+        'scheduleForUpcomingDays tamamlandı - OS\'te şu an bekleyen '
+        'bildirim sayısı: ${pending.length}',
+      );
     }
   }
 }
