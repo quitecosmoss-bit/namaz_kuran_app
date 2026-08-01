@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -39,6 +40,16 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
           if (mounted) setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, error) {
+          // Sebep "gerçek gelir yok/gösterecek reklam bulunamadı" (no fill,
+          // code 3) gibi geçici bir durum mu, yoksa gerçek bir yapılandırma
+          // hatası mı (kod 0/1/2) - bunu ayırt edebilmek için hatayı debug
+          // modda konsola yazdırıyoruz. Kullanıcı arayüzünü etkilemez.
+          if (kDebugMode) {
+            debugPrint(
+              'AdMob banner yüklenemedi: kod=${error.code} '
+              'alan=${error.domain} mesaj=${error.message}',
+            );
+          }
           ad.dispose();
         },
       ),

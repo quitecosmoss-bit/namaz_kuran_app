@@ -39,6 +39,12 @@ class InterstitialAdService {
           _isLoading = false;
         },
         onAdFailedToLoad: (error) {
+          if (kDebugMode) {
+            debugPrint(
+              'AdMob interstitial yüklenemedi: kod=${error.code} '
+              'alan=${error.domain} mesaj=${error.message}',
+            );
+          }
           _ad = null;
           _isLoading = false;
         },

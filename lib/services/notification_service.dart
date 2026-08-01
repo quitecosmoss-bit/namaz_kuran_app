@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -47,8 +49,19 @@ class NotificationService {
 
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.requestNotificationsPermission();
-    await androidImpl?.requestExactAlarmsPermission();
+    final notifGranted = await androidImpl?.requestNotificationsPermission();
+    final exactAlarmGranted =
+        await androidImpl?.requestExactAlarmsPermission();
+
+    if (kDebugMode) {
+      // Bu ikisinden herhangi biri false ise bildirimler planlanamaz ya
+      // da hiç görünmez - "hiç bildirim gelmiyor" şikayetinin en sık
+      // sebebi budur.
+      debugPrint(
+        'Bildirim izinleri -> bildirim izni: $notifGranted, '
+        'tam saat alarmı izni: $exactAlarmGranted',
+      );
+    }
 
     _initialized = true;
   }
@@ -105,7 +118,7 @@ class NotificationService {
   }) async {
     if (dateTime.isBefore(DateTime.now())) return;
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
         'prayer_reminders',
         'Namaz Vakti Hatırlatmaları',
@@ -113,6 +126,14 @@ class NotificationService {
             'Namaz vakitlerinden önce gönderilen hatırlatma bildirimleri',
         importance: Importance.max,
         priority: Priority.high,
+        // Sessiz/başlıksız gelmesin diye ses ve titreşimi açıkça istiyoruz;
+        // varsayılanlar zaten true ama kanal davranışını netleştirmek için
+        // burada belirtiyoruz.
+        playSound: true,
+        enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 400, 200, 400]),
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
       ),
     );
 
@@ -127,9 +148,15 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-    } catch (_) {
-      // İzin verilmediyse ya da cihaz desteklemiyorsa sessizce atla;
-      // uygulamanın geri kalanını etkilemesin.
+    } catch (e, st) {
+      // ÖNEMLİ: Burası daha önce tamamen sessizdi - "tam saat izni"
+      // (exact alarm) verilmemişse plugin hata fırlatır ve bildirim hiç
+      // planlanmaz, ama kullanıcı/geliştirici bunu asla göremezdi.
+      // Şimdi en azından debug modda konsola yazdırıyoruz.
+      if (kDebugMode) {
+        debugPrint('Bildirim planlanamadı (id=$id, zaman=$dateTime): $e');
+        debugPrint('$st');
+      }
     }
   }
 
